@@ -1,29 +1,32 @@
-import math
+import numpy as np
 
-class car(object):
-	"""docstring for car"""
-	def __init__(self):
-		self.v = 20
-		self.ax = 10
-		self.ay = 1
-		self.az = 1
-		self.maxt = 1/2
 
-	def trayectory(self):
-		x,y,z = [],[],[]
-		track = []
-		t = 0
+class Car:
 
-		while t < self.maxt:
-			x.append(self.v*t)
-			y.append(self.ay*math.sin(((4*math.pi*self.v)/(self.ax))*t))
-			z.append(self.ay*math.sin(((math.pi*self.v)/(self.ax))*t))
-			t += 1/60
+	def __init__(self, v, a_x, a_y, a_z):
+		self.v = v
+		self.a_x = a_x
+		self.a_y = a_y
+		self.a_z = a_z
 
-		track.append(x)
-		track.append(y)
-		track.append(z)
+	def position(self, t):
+		return np.array([
+			self.v * t,
+			self.a_y * np.sin((4 * np.pi * self.v / self.a_x) * t),
+			self.a_z * np.sin((4 * np.pi * self.v / self.a_x) * t)
+		])
 
-		return track
+	def velocity(self, t):
+		return np.array([
+			self.v,
+			self.a_y * np.cos((4 * np.pi * self.v / self.a_x) * t) * (4 * np.pi * self.v / self.a_x),
+			self.a_z * np.cos((4 * np.pi * self.v / self.a_x) * t) * (4 * np.pi * self.v / self.a_x)
+		])
 
-		
+	def acceleration(self, t):
+		return np.array([
+			0,
+			np.power(4 * np.pi * self.v / self.a_x, 2) * self.a_y * - np.sin((4 * np.pi * self.v / self.a_x) * t),
+			np.power(4 * np.pi * self.v / self.a_x, 2) * self.a_z * - np.sin((4 * np.pi * self.v / self.a_x) * t)
+		])
+

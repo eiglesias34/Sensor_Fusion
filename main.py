@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
+from car import Car
+
 
 def car_pos(t, v, a_x, a_y, a_z):
 
@@ -18,14 +20,16 @@ def exercise_3():
     a_x = 10
     a_y = a_z = 1
 
+    car = Car(v=20, a_x=10, a_y=1, a_z=1)
+
     time = np.linspace(0, a_x / v, 200)
 
-    trayectory = np.array([car_pos(t, v, a_x, a_y, a_z) for t in time])
+    trayectory = np.array([car.position(t) for t in time])
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
-    ax.plot(trayectory[:,0], trayectory[:, 1], trayectory[:, 2])
+    ax.plot(trayectory[:, 0], trayectory[:, 1], trayectory[:, 2])
     plt.show()
 
 
