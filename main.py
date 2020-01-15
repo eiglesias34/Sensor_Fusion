@@ -22,14 +22,27 @@ def exercise_3():
 
     car = Car(v=20, a_x=10, a_y=1, a_z=1)
 
-    time = np.linspace(0, a_x / v, 200)
+    time = np.linspace(0, a_x / v, 50)
 
     trayectory = np.array([car.position(t) for t in time])
+    velocity = np.array([car.velocity(t) / np.linalg.norm(car.velocity(t))
+                         for t in time])
+
+    acceleration = np.array([car.acceleration(t) / np.linalg.norm(car.acceleration(t))
+                          for t in time])
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
     ax.plot(trayectory[:, 0], trayectory[:, 1], trayectory[:, 2])
+    # plt.show()
+
+    ax.quiver(trayectory[:, 0], trayectory[:, 1], trayectory[:, 2],
+              velocity[:, 0], velocity[:, 1], velocity[:, 2], color='orange')
+    ax.quiver(trayectory[:, 0], trayectory[:, 1], trayectory[:, 2],
+              acceleration[:, 0], acceleration[:, 1], acceleration[:, 2], color='blue')
+
+
     plt.show()
 
 
