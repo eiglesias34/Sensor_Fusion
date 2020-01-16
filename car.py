@@ -13,20 +13,30 @@ class Car:
 		return np.array([
 			self.v * t,
 			self.a_y * np.sin((4 * np.pi * self.v / self.a_x) * t),
-			self.a_z * np.sin((4 * np.pi * self.v / self.a_x) * t)
+			self.a_z * np.sin((np.pi * self.v / self.a_x) * t)
 		])
 
 	def velocity(self, t):
 		return np.array([
 			self.v,
 			self.a_y * np.cos((4 * np.pi * self.v / self.a_x) * t) * (4 * np.pi * self.v / self.a_x),
-			self.a_z * np.cos((4 * np.pi * self.v / self.a_x) * t) * (4 * np.pi * self.v / self.a_x)
+			self.a_z * np.cos((np.pi * self.v / self.a_x) * t) * (np.pi * self.v / self.a_x)
 		])
 
 	def acceleration(self, t):
 		return np.array([
 			0,
 			np.power(4 * np.pi * self.v / self.a_x, 2) * self.a_y * - np.sin((4 * np.pi * self.v / self.a_x) * t),
-			np.power(4 * np.pi * self.v / self.a_x, 2) * self.a_z * - np.sin((4 * np.pi * self.v / self.a_x) * t)
+			np.power(np.pi * self.v / self.a_x, 2) * self.a_z * - np.sin((np.pi * self.v / self.a_x) * t)
 		])
+
+	def tangential(self,time):
+		speed = np.array([self.velocity(t) for t in time])
+		x,y,z = [],[],[]
+		for s in speed:
+			module = np.power(np.power(s[0],2) + np.power(s[1],2) + np.power(s[2],2),1/2)
+			x.append(s[0]/module)
+			y.append(s[1]/module)
+			z.append(s[2]/module)
+		return np.array([x,y,z])
 
