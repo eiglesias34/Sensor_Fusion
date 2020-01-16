@@ -19,15 +19,22 @@ class Radar:
             np.power(target[1] - self.position[1], 2) +
             np.power(target[2] - self.position[2], 2) -
             np.power(self.position[2], 2)
-        ) + np.random.normal(0, 1, 1)[0]
+        )
 
         z_azimuth = np.arctan(
             (target[1] - self.position[1]) / (target[0] - self.position[0])
-        ) + np.random.normal(0, 1, 1)[0]
+        )
 
         return np.arra([
             z_range,
             z_azimuth
+        ])
+
+    def noise(self):
+
+        return np.array([
+            self.sigma_range * np.random.normal(0, 1, 1)[0],
+            self.sigma_azimuth * np.random.normal(0, 1, 1)[0]
         ])
 
 
