@@ -3,7 +3,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
 from car import Car
-
+from radar import Radar
 
 def car_pos(t, v, a_x, a_y, a_z):
 
@@ -45,9 +45,18 @@ def exercise_3():
 
     plt.show()
 
+def exercise_4():
+
+    radar_1 = Radar(x=0, y=100, z=10, sigma_range=10, sigma_azimuth=0.1)
+    radar_2 = Radar(x=100, y=0, z=10, sigma_range=10, sigma_azimuth=0.1)
+
+    
+
+
 
 def main():
     exercise_3()
+    exercise_4()
 
 
 if __name__ == "__main__":
