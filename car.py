@@ -32,11 +32,24 @@ class Car:
 
 	def tangential(self,time):
 		speed = np.array([self.velocity(t) for t in time])
-		x,y,z = [],[],[]
+		tangent = []
 		for s in speed:
 			module = np.power(np.power(s[0],2) + np.power(s[1],2) + np.power(s[2],2),1/2)
-			x.append(s[0]/module)
-			y.append(s[1]/module)
-			z.append(s[2]/module)
-		return np.array([x,y,z])
+			tangent.append([s[0]/module,s[1]/module,s[2]/module])
+		return np.array(tangent)
+
+	def module(self,function):
+		mod = []
+		for f in function:
+			mod.append(np.power((np.power(f[0],2) + np.power(f[1],2) + np.power(f[2],2)),1/2))
+		return np.array(mod)
+
+	def dot_product(self,f1,f2):
+		result = []
+		i = 0 
+		while i < len(f1):
+			result.append(f1[i,0]*f2[i,0]+f1[i,1]*f2[i,1]+f1[i,2]*f2[i,2])
+			i += 1
+		return np.array(result)
+
 

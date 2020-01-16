@@ -32,6 +32,39 @@ def exercise_3():
     ax.plot(trayectory[:, 0], trayectory[:, 1], trayectory[:, 2])
     plt.show()
 
+    speed = np.array([car.velocity(t) for t in time])
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    ax.plot(speed[:, 0], speed[:, 1], speed[:, 2])
+    plt.show()
+
+    acc = np.array([car.acceleration(t) for t in time])
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    ax.plot(acc[:, 0], acc[:, 1], acc[:, 2])
+    plt.show()
+
+    tangent = car.tangential(time)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    ax.plot(tangent[:, 0], tangent[:, 1], tangent[:, 2])
+    plt.show()
+
+    mod_vel = car.module(speed)
+    mod_acc = car.module(acc)
+    dot = car.dot_product(acc,tangent)
+
+    plt.plot(time,mod_vel,
+            time,mod_acc,
+            time,dot)
+    plt.show()
+
 
 def main():
     exercise_3()
