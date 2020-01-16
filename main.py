@@ -52,8 +52,10 @@ def exercise_3():
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-
-    ax.plot(tangent[:, 0], tangent[:, 1], tangent[:, 2])
+    ax.plot(trayectory[:, 0], trayectory[:, 1], trayectory[:, 2])
+    ax.quiver(trayectory[:, 0], trayectory[:, 1], trayectory[:, 2],
+              tangent[:, 0], tangent[:, 1], tangent[:, 2], color='blue')
+    
     plt.show()
 
     mod_vel = car.module(speed)
