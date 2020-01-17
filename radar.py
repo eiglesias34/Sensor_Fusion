@@ -5,7 +5,7 @@ class Radar:
 
     def __init__(self, x, y, z, sigma_range, sigma_azimuth):
 
-        self.position = np.array([
+        self.location = np.array([
             x, y, z
         ])
 
@@ -15,20 +15,20 @@ class Radar:
     def measure(self, target):
 
         z_range = np.sqrt(
-            np.power(target[0] - self.position[0], 2) +
-            np.power(target[1] - self.position[1], 2) +
-            np.power(target[2] - self.position[2], 2) -
-            np.power(self.position[2], 2)
+            np.power(target[0] - self.location[0], 2) +
+            np.power(target[1] - self.location[1], 2) +
+            np.power(target[2] - self.location[2], 2) -
+            np.power(self.location[2], 2)
         )
 
         z_azimuth = np.arctan(
-            (target[1] - self.position[1]) / (target[0] - self.position[0])
+            (target[1] - self.location[1]) / (target[0] - self.location[0])
         )
 
-        return np.arra([
+        return np.array([
             z_range,
             z_azimuth
-        ])
+        ]) + self.noise()
 
     def noise(self):
 

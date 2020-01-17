@@ -16,13 +16,9 @@ def car_pos(t, v, a_x, a_y, a_z):
 
 def exercise_3():
 
-    v = 20
-    a_x = 10
-    a_y = a_z = 1
-
     car = Car(v=20, a_x=10, a_y=1, a_z=1)
 
-    time = np.linspace(0, a_x / v, 50)
+    time = np.linspace(0, car.a_x / car.v, 50)
 
     trayectory = np.array([car.position(t) for t in time])
     velocity = np.array([car.velocity(t) / np.linalg.norm(car.velocity(t))
@@ -47,15 +43,32 @@ def exercise_3():
 
 def exercise_4():
 
-    radar_1 = Radar(x=0, y=100, z=10, sigma_range=10, sigma_azimuth=0.1)
-    radar_2 = Radar(x=100, y=0, z=10, sigma_range=10, sigma_azimuth=0.1)
+    radar_1 = Radar(x=0.0, y=100.0, z=10.0, sigma_range=10.0, sigma_azimuth=0.1)
+    radar_2 = Radar(x=100.0, y=0.0, z=10.0, sigma_range=10.0, sigma_azimuth=0.1)
 
-    
+    car = Car(v=20.0, a_x=10.0, a_y=1.0, a_z=1.0)
+
+    time = np.linspace(0, car.location[0] / car.v, 50)
+
+    measurements_1 = np.zeros((len(time), 2))
+    measurements_2 = np.zeros((len(time), 2))
+
+    measurements_1 = [radar_1.measure(car.position(t)) for t in time]
+    measurements_2 = [radar_2.measure(car.position(t)) for t in time]
+
+    print('ola')
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111, projection='3d')
 
 
+    #
+    # ax.scatter([radar_1.location[0]], [radar_1.location[1]], [radar_1.location[2]], c='b')
+    # ax.scatter([radar_2.location[0]], [radar_2.location[1]], [radar_2.location[2]], c='r')
+    # plt.show()
+    #
 
 def main():
-    exercise_3()
+    # exercise_3()
     exercise_4()
 
 
