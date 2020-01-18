@@ -31,8 +31,7 @@ class Car:
 		return np.array([
 			0,
 			np.power(4 * np.pi * self.v / self.location[0], 2)
-				* self.a_y * - np.sin((4 * np.pi * self.v / self.location[0]) * t),
+				* self.location[1] * - np.sin((4 * np.pi * self.v / self.location[0]) * t),
 			np.power(np.pi * self.v / self.location[0], 2)
-				* self.a_z * - np.sin((np.pi * self.v / self.location[0]) * t)
+				* self.location[2] * - np.sin((np.pi * self.v / self.location[0]) * t)
 		])
-

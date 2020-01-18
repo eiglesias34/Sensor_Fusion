@@ -18,28 +18,57 @@ def exercise_3():
 
     car = Car(v=20, a_x=10, a_y=1, a_z=1)
 
-    time = np.linspace(0, car.a_x / car.v, 50)
+    time = np.linspace(0, car.location[0] / car.v, 50)
+
+    # TRAYECTORY
 
     trayectory = np.array([car.position(t) for t in time])
-    velocity = np.array([car.velocity(t) / np.linalg.norm(car.velocity(t))
-                         for t in time])
-
-    acceleration = np.array([car.acceleration(t) / np.linalg.norm(car.acceleration(t))
-                          for t in time])
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
     ax.plot(trayectory[:, 0], trayectory[:, 1], trayectory[:, 2])
-    # plt.show()
-
-    ax.quiver(trayectory[:, 0], trayectory[:, 1], trayectory[:, 2],
-              velocity[:, 0], velocity[:, 1], velocity[:, 2], color='orange')
-    ax.quiver(trayectory[:, 0], trayectory[:, 1], trayectory[:, 2],
-              acceleration[:, 0], acceleration[:, 1], acceleration[:, 2], color='blue')
-
-
     plt.show()
+
+    # Speed and Acceleration
+    speeds = np.array([car.velocity(t) for t in time])
+    accs = np.array([car.acceleration(t) for t in time])
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot(speeds[:, 0], speeds[:, 1], speeds[:, 2])
+    plt.show()
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot(accs[:, 0], accs[:, 1], accs[:, 2])
+    plt.show()
+
+    # Velocity tangential vectors
+
+    velocity_tan = np.array([car.velocity(t) / np.linalg.norm(car.velocity(t))
+                         for t in time])
+
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot(trayectory[:, 0], trayectory[:, 1], trayectory[:, 2], color='blue')
+    ax.quiver(trayectory[:, 0], trayectory[:, 1], trayectory[:, 2],
+              velocity_tan[:, 0], velocity_tan[:, 1], velocity_tan[:, 2], color='orange')
+    plt.show()
+
+    # Modules part
+
+    mod_vel = np.array([np.linalg.norm(sp) for sp in speeds])
+    mod_accs = np.array([np.linalg.norm(acc) for acc in accs])
+
+    dot_prodcuts = [np.dot(accs[i], speeds[i]) for i in range(len(accs))]
+
+    plt.plot(time, mod_vel,
+             time, mod_accs,
+             time, dot_prodcuts)
+    plt.show()
+
 
 def exercise_4():
 
@@ -68,7 +97,7 @@ def exercise_4():
     #
 
 def main():
-    # exercise_3()
+    exercise_3()
     exercise_4()
 
 
