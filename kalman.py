@@ -77,5 +77,3 @@ class KalmanFilter:
             x, self.P = self.correction_step(z, x, self.P)
 
             t += self.delta_t
-
-
