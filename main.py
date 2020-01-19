@@ -44,6 +44,7 @@ def exercise_3():
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.plot(speeds[:, 0], speeds[:, 1], speeds[:, 2])
+    plt.title('Car Velocity m/s')
     ax.set_xlabel('X axis')
     ax.set_ylabel('Y axis')
     ax.set_zlabel('Z axis')
@@ -52,13 +53,16 @@ def exercise_3():
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.plot(accs[:, 0], accs[:, 1], accs[:, 2])
+    plt.title('Car Acceleration m/s^{2}')
     ax.set_xlabel('X axis')
     ax.set_ylabel('Y axis')
     ax.set_zlabel('Z axis')
     plt.show()
 
     # Velocity tangential vectors
-    velocity_tan = np.array([500*car.velocity(t) / np.linalg.norm(car.velocity(t))
+    # The 500 factor is just a scale
+    # so that the arrows can be seen in the plot
+    velocity_tan = np.array([500 * car.velocity(t) / np.linalg.norm(car.velocity(t))
                             for t in time])
 
     fig = plt.figure()
@@ -66,6 +70,7 @@ def exercise_3():
     ax.plot(trajectory[:, 0], trajectory[:, 1], trajectory[:, 2], color='blue')
     ax.quiver(trajectory[:, 0], trajectory[:, 1], trajectory[:, 2],
               velocity_tan[:, 0], velocity_tan[:, 1], velocity_tan[:, 2], color='orange')
+    plt.title('Car Tangential Vectors')
     ax.set_xlabel('X axis')
     ax.set_ylabel('Y axis')
     ax.set_zlabel('Z axis')
@@ -76,11 +81,11 @@ def exercise_3():
     mod_vel = np.array([np.linalg.norm(sp) for sp in speeds])
     mod_accs = np.array([np.linalg.norm(acc) for acc in accs])
 
-    dot_prodcuts = [np.dot(accs[i], speeds[i]) for i in range(len(accs))]
+    dot_products = [np.dot(accs[i], speeds[i]) for i in range(len(accs))]
 
     plt.plot(time, mod_vel,
              time, mod_accs,
-             time, dot_prodcuts)
+             time, dot_products)
     plt.show()
 
 
