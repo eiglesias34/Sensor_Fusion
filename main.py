@@ -16,18 +16,25 @@ def car_pos(t, v, a_x, a_y, a_z):
 
 def exercise_3():
 
-    car = Car(v=20, a_x=10, a_y=1, a_z=1)
+    car = Car(v=20 * 1000 / 3600,
+              a_x=10000.0,
+              a_y=1000.0,
+              a_z=1000.0)
 
     time = np.linspace(0, car.location[0] / car.v, 50)
 
-    # TRAYECTORY
+    # trajectory
 
-    trayectory = np.array([car.position(t) for t in time])
+    trajectory = np.array([car.position(t) for t in time])
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
-    ax.plot(trayectory[:, 0], trayectory[:, 1], trayectory[:, 2])
+    ax.plot(trajectory[:, 0], trajectory[:, 1], trajectory[:, 2])
+    plt.title('Car Trajectory')
+    ax.set_xlabel('X axis')
+    ax.set_ylabel('Y axis')
+    ax.set_zlabel('Z axis')
     plt.show()
 
     # Speed and Acceleration
@@ -37,24 +44,31 @@ def exercise_3():
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.plot(speeds[:, 0], speeds[:, 1], speeds[:, 2])
+    ax.set_xlabel('X axis')
+    ax.set_ylabel('Y axis')
+    ax.set_zlabel('Z axis')
     plt.show()
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.plot(accs[:, 0], accs[:, 1], accs[:, 2])
+    ax.set_xlabel('X axis')
+    ax.set_ylabel('Y axis')
+    ax.set_zlabel('Z axis')
     plt.show()
 
     # Velocity tangential vectors
-
-    velocity_tan = np.array([car.velocity(t) / np.linalg.norm(car.velocity(t))
-                         for t in time])
-
+    velocity_tan = np.array([500*car.velocity(t) / np.linalg.norm(car.velocity(t))
+                            for t in time])
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.plot(trayectory[:, 0], trayectory[:, 1], trayectory[:, 2], color='blue')
-    ax.quiver(trayectory[:, 0], trayectory[:, 1], trayectory[:, 2],
+    ax.plot(trajectory[:, 0], trajectory[:, 1], trajectory[:, 2], color='blue')
+    ax.quiver(trajectory[:, 0], trajectory[:, 1], trajectory[:, 2],
               velocity_tan[:, 0], velocity_tan[:, 1], velocity_tan[:, 2], color='orange')
+    ax.set_xlabel('X axis')
+    ax.set_ylabel('Y axis')
+    ax.set_zlabel('Z axis')
     plt.show()
 
     # Modules part
@@ -72,28 +86,38 @@ def exercise_3():
 
 def exercise_4():
 
-    radar_1 = Radar(x=0.0, y=100.0, z=10.0, sigma_range=10.0, sigma_azimuth=0.1)
-    radar_2 = Radar(x=100.0, y=0.0, z=10.0, sigma_range=10.0, sigma_azimuth=0.1)
+    radar_1 = Radar(x=0.0, y=100000.0, z=10.0, sigma_range=10.0, sigma_azimuth=0.1)
+    radar_2 = Radar(x=100000.0, y=0.0, z=10.0, sigma_range=10.0, sigma_azimuth=0.1)
 
-    car = Car(v=20.0, a_x=10.0, a_y=1.0, a_z=1.0)
+    car = Car(v=20 * 1000 / 3600,
+              a_x=10000.0,
+              a_y=1000.0,
+              a_z=1000.0)
 
-    time = np.linspace(0, car.location[0] / car.v, 50)
+    time = np.linspace(0, car.location[0] / car.v, 900)
 
-    measurements_1 = np.zeros((len(time), 2))
-    measurements_2 = np.zeros((len(time), 2))
+    trajectory = np.array([car.position(t) for t in time])
+    measurements_1 = np.array([radar_1.measure(car.position(t)) for t in time])
+    measurements_2 = np.array([radar_2.measure(car.position(t)) for t in time])
 
-    measurements_1 = [radar_1.measure(car.position(t)) for t in time]
-    measurements_2 = [radar_2.measure(car.position(t)) for t in time]
+    # Measurements transformation
+    trans_measures_1 = np.array([measurements_1[i]
+                        * np.array([np.cos(measurements_1[i, 1]),
+                                    np.sin(measurements_1[i, 1])])
+                        + trajectory[i][:2] for i in range(len(trajectory))])
+    trans_measures_2 = np.array([measurements_2[i]
+                        * np.array([np.cos(measurements_2[i, 1]),
+                                    np.sin(measurements_2[i, 1])])
+                        + trajectory[i][:2] for i in range(len(trajectory))])
 
-    print('ola')
-    # fig = plt.figure()
-    # ax = fig.add_subplot(111, projection='3d')
+
+    fig = plt.figure()
+    plt.plot(trans_measures_1[:, 0], trans_measures_1[:, 1], c='b')
+    plt.plot(trans_measures_2[:, 0], trans_measures_2[:, 1], c='g')
+    plt.plot(trajectory[:, 0], trajectory[:, 1], c='r')
+    plt.show()
 
 
-    #
-    # ax.scatter([radar_1.location[0]], [radar_1.location[1]], [radar_1.location[2]], c='b')
-    # ax.scatter([radar_2.location[0]], [radar_2.location[1]], [radar_2.location[2]], c='r')
-    # plt.show()
     #
 
 def main():

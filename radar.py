@@ -21,9 +21,8 @@ class Radar:
             np.power(self.location[2], 2)
         )
 
-        z_azimuth = np.arctan(
-            (target[1] - self.location[1]) / (target[0] - self.location[0])
-        )
+        z_azimuth = np.arctan2(target[1] - self.location[1],
+                               target[0] - self.location[0])
 
         return np.array([
             z_range,
