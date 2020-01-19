@@ -4,14 +4,7 @@ import numpy as np
 
 from car import Car
 from radar import Radar
-
-def car_pos(t, v, a_x, a_y, a_z):
-
-    return np.array([
-        v*t,
-        a_y * np.sin((4 * np.pi * v / a_x) * t),
-        a_z * np.sin((4 * np.pi * v / a_x) * t)
-    ])
+from kalman import KalmanFilter
 
 
 def exercise_3():
@@ -83,6 +76,7 @@ def exercise_3():
 
     dot_products = [np.dot(accs[i], speeds[i]) for i in range(len(accs))]
 
+    fig = plt.figure()
     plt.plot(time, mod_vel,
              time, mod_accs,
              time, dot_products)
@@ -91,8 +85,8 @@ def exercise_3():
 
 def exercise_4():
 
-    radar_1 = Radar(x=0.0, y=100000.0, z=10.0, sigma_range=10.0, sigma_azimuth=0.1)
-    radar_2 = Radar(x=100000.0, y=0.0, z=10.0, sigma_range=10.0, sigma_azimuth=0.1)
+    radar_1 = Radar(x=0.0, y=100000.0, z=10000.0, sigma_range=10.0, sigma_azimuth=0.1)
+    radar_2 = Radar(x=100000.0, y=0.0, z=10000.0, sigma_range=10.0, sigma_azimuth=0.1)
 
     car = Car(v=20 * 1000 / 3600,
               a_x=10000.0,
@@ -122,11 +116,16 @@ def exercise_4():
     plt.plot(trajectory[:, 0], trajectory[:, 1], c='r')
     plt.show()
 
+    # High Variance
+    P = np.identity(6)
 
-    #
+    kalman = KalmanFilter([radar_1, radar_2], car, P, 2)
+
+    kalman.filter()
+
 
 def main():
-    exercise_3()
+    # exercise_3()
     exercise_4()
 
 

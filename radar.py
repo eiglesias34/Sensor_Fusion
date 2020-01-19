@@ -15,10 +15,10 @@ class Radar:
     def measure(self, target):
 
         z_range = np.sqrt(
-            np.power(target[0] - self.location[0], 2) +
-            np.power(target[1] - self.location[1], 2) +
-            np.power(target[2] - self.location[2], 2) -
-            np.power(self.location[2], 2)
+            (target[0] - self.location[0]) ** 2 +
+            (target[1] - self.location[1]) ** 2 +
+            (target[2] - self.location[2]) ** 2 -
+            self.location[2] ** 2
         )
 
         z_azimuth = np.arctan2(target[1] - self.location[1],
