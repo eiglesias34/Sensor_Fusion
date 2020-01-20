@@ -10,7 +10,7 @@ class Radar:
         ])
 
         self.sigma_range = sigma_range
-        self.sigma_azimuth = sigma_azimuth
+        self.sigma_azimuth = sigma_azimuth * np.pi / 180
 
     def noise(self):
 
@@ -40,8 +40,8 @@ class Radar:
     def cartesian_measure(self, target, t):
 
         z = self.measure(target, t)
-        z = z * np.array([np.cos(z[1]),
-                          np.sin(z[1])])
+        z = z[0] * np.array([np.cos(z[1]), np.sin(z[1])]) \
+            + self.location[:2]
 
         return z
 
