@@ -47,23 +47,20 @@ class Radar:
 
     def cartesian_error_covariance(self, target, t):
 
-        measure = self.measure(target, t)
-
-        r, phi = measure[0], measure[1]
-
-        rotation_matrix = np.array([
+        r, phi = self.measure(target, t)
+        D = np.array([
             [np.cos(phi), - np.sin(phi)],
             [np.sin(phi), np.cos(phi)]
         ])
 
         core_matrix = np.array([
             [self.sigma_range ** 2, 0],
-            [0, (r ** 2) * (self.sigma_azimuth ** 2) ]
+            [0, (r * self.sigma_azimuth) ** 2]
         ])
 
-        R = np.matmul(np.matmul(rotation_matrix, core_matrix), rotation_matrix.T)
+        trt = np.matmul(np.matmul(D, core_matrix), D.T)
 
-        return R
+        return trt
 
 
 

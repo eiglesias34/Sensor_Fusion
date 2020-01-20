@@ -98,11 +98,8 @@ def exercise_4():
     trajectory = np.array([car.position(t) for t in time])
 
     # Measurements transformation
-    trans_measures_1 = np.array([radar_1.cartesian_measure(car, t)
-                                + car.position(t)[:2] for t in time])
-    trans_measures_2 = np.array([radar_2.cartesian_measure(car, t)
-                                 + car.position(t)[:2] for t in time])
-
+    trans_measures_1 = np.array([radar_1.cartesian_measure(car, t) for t in time])
+    trans_measures_2 = np.array([radar_2.cartesian_measure(car, t) for t in time])
     fig = plt.figure()
     plt.plot(trans_measures_1[:, 0], trans_measures_1[:, 1], c='b')
     plt.plot(trans_measures_2[:, 0], trans_measures_2[:, 1], c='g')

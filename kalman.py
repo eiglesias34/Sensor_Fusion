@@ -112,10 +112,10 @@ class KalmanFilter:
 
             target_state, self.P = self.prediction_step(target_state, self.P)
             target_state, self.P = self.correction_step(zk, Rk, x, self.P)
-            track.append(target_state)
+            track.append(target_state.copy())
             t += self.delta_t
 
         track = np.array(track)
-        track[:, 0] = track[:, 0] - 100000
+        track[:, 0] = track[:, 0]
         plt.scatter(track[:, 0], track[:, 1], c='g')
         plt.show()
