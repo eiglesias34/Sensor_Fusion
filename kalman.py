@@ -12,10 +12,10 @@ class KalmanFilter:
         self.target = target
         self.P = P
         self.delta_t = delta_t
-        self.H = np.tile([
+        self.H = np.array([
                             [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                             [0.0, 1.0, 0.0, 0.0, 0.0, 0.0]
-                            ], (len(radars), 1))
+                            ])
 
     def prediction_step(self, x, P):
 
@@ -39,15 +39,15 @@ class KalmanFilter:
 
         return x1, P1
 
-    def correction_step(self, z, x, P):
+    def correction_step(self, z, R, x, P):
 
         # Construct R
-        R = np.array([
-            [self.radars[0].sigma_range, .0, .0, .0],
-            [.0, self.radars[0].sigma_azimuth, .0, .0],
-            [.0, .0, self.radars[1].sigma_range, .0],
-            [.0, .0, .0, self.radars[1].sigma_azimuth]
-        ])
+        # R = np.array([
+        #     [self.radars[0].sigma_range, .0, .0, .0],
+        #     [.0, self.radars[0].sigma_azimuth, .0, .0],
+        #     [.0, .0, self.radars[1].sigma_range, .0],
+        #     [.0, .0, .0, self.radars[1].sigma_azimuth]
+        # ])
         np.matmul(self.H, x)
         v = z - np.matmul(self.H, x)
         S = np.matmul(np.matmul(self.H, P), self.H.T) + R
@@ -85,12 +85,30 @@ class KalmanFilter:
 
         while t <= time_limit:
 
-            z1 = self.radars[0].cartesian_measure(self.target, t)
-            z2 = self.radars[1].cartesian_measure(self.target, t)
-            z = np.hstack((z1, z2))
+            # individual measures in array
+            z = np.array([
+                sensor.cartesian_measure(self.target, t)
+                for sensor in self.radars
+            ])
+
+            # inverted individual covs (R_k^{-1})
+            Rs = [np.linalg.inv(sensor.cartesian_error_covariance(self.target, t))
+                  for sensor in self.radars]
+
+            # effective cov
+            Rk = np.linalg.inv(np.sum(Rs, axis=0))
+
+            # values for the sum to obtain z_k
+            zk_sum_values = np.array([
+                np.matmul(Rs[i], z[i])
+                for i in range(len(self.radars))
+            ])
+
+            # effective measurement
+            zk = np.matmul(Rk, np.sum(zk_sum_values, axis=0))
 
             target_state, self.P = self.prediction_step(target_state, self.P)
-            target_state, self.P = self.correction_step(z, x, self.P)
+            target_state, self.P = self.correction_step(zk, Rk, x, self.P)
             track.append(target_state)
             t += self.delta_t
 
