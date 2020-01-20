@@ -96,19 +96,12 @@ def exercise_4():
     time = np.linspace(0, car.location[0] / car.v, 900)
 
     trajectory = np.array([car.position(t) for t in time])
-    measurements_1 = np.array([radar_1.measure(car.position(t)) for t in time])
-    measurements_2 = np.array([radar_2.measure(car.position(t)) for t in time])
 
     # Measurements transformation
-    trans_measures_1 = np.array([measurements_1[i]
-                        * np.array([np.cos(measurements_1[i, 1]),
-                                    np.sin(measurements_1[i, 1])])
-                        + trajectory[i][:2] for i in range(len(trajectory))])
-    trans_measures_2 = np.array([measurements_2[i]
-                        * np.array([np.cos(measurements_2[i, 1]),
-                                    np.sin(measurements_2[i, 1])])
-                        + trajectory[i][:2] for i in range(len(trajectory))])
-
+    trans_measures_1 = np.array([radar_1.cartesian_measure(car, t)
+                                + car.position(t)[:2] for t in time])
+    trans_measures_2 = np.array([radar_2.cartesian_measure(car, t)
+                                 + car.position(t)[:2] for t in time])
 
     fig = plt.figure()
     plt.plot(trans_measures_1[:, 0], trans_measures_1[:, 1], c='b')

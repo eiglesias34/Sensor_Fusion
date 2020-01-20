@@ -12,10 +12,10 @@ class KalmanFilter:
         self.target = target
         self.P = P
         self.delta_t = delta_t
-        self.H = np.array([
+        self.H = np.tile([
                             [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                             [0.0, 1.0, 0.0, 0.0, 0.0, 0.0]
-                            ])
+                            ], (len(radars), 1))
 
     def prediction_step(self, x, P):
 
@@ -42,11 +42,16 @@ class KalmanFilter:
     def correction_step(self, z, x, P):
 
         # Construct R
-        # R = ?
-
+        R = np.array([
+            [self.radars[0].sigma_range, .0, .0, .0],
+            [.0, self.radars[0].sigma_azimuth, .0, .0],
+            [.0, .0, self.radars[1].sigma_range, .0],
+            [.0, .0, .0, self.radars[1].sigma_azimuth]
+        ])
+        np.matmul(self.H, x)
         v = z - np.matmul(self.H, x)
         S = np.matmul(np.matmul(self.H, P), self.H.T) + R
-        W = np.matmul(np.matmul(P, self.H.T), np.invert(S))
+        W = np.matmul(np.matmul(P, self.H.T), np.linalg.inv(S))
 
         x += np.matmul(W, v)
         P -= np.matmul(np.matmul(W, S), W.T)
@@ -60,20 +65,36 @@ class KalmanFilter:
 
         radar = self.radars[0]
 
+        time = np.linspace(0, self.target.location[0] / self.target.v, 900)
+        trajectory = np.array([self.target.position(t) for t in time])
+
+        x = np.zeros(6)
+        track = []
+
+        fig = plt.figure()
+        plt.plot(trajectory[:, 0], trajectory[:, 1], c='r')
+
+        target_state = np.array([
+            self.target.position(0)[0],
+            self.target.position(0)[1],
+            self.target.position(0)[2],
+            self.target.velocity(0)[0],
+            self.target.velocity(0)[1],
+            self.target.velocity(0)[2]
+        ])
+
         while t <= time_limit:
 
-            target_state = np.array([
-                                self.target.position(t)[0],
-                                self.target.position(t)[1],
-                                self.target.position(t)[2],
-                                self.target.velocity(t)[0],
-                                self.target.velocity(t)[1],
-                                self.target.velocity(t)[2]
-                                ])
+            z1 = self.radars[0].cartesian_measure(self.target, t)
+            z2 = self.radars[1].cartesian_measure(self.target, t)
+            z = np.hstack((z1, z2))
 
-            z = radar.measure(self.target.position(t))
-
-            x, self.P = self.prediction_step(target_state, self.P)
-            x, self.P = self.correction_step(z, x, self.P)
-
+            target_state, self.P = self.prediction_step(target_state, self.P)
+            target_state, self.P = self.correction_step(z, x, self.P)
+            track.append(target_state)
             t += self.delta_t
+
+        track = np.array(track)
+        track[:, 0] = track[:, 0] - 100000
+        plt.scatter(track[:, 0], track[:, 1], c='g')
+        plt.show()
