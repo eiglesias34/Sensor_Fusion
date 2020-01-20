@@ -24,14 +24,16 @@ class KalmanFilter:
 
         # Construct F
         F = np.identity(6)
-        F[:3, 3:] = self.delta_t * np.identity(1)
+        F[:3, 3:] = self.delta_t * np.identity(3)
 
         # Construct D
         D = np.zeros((6, 6))
         D[:3, :3] = 1.0 / 4 * (self.delta_t ** 4) * np.identity(3)
         D[:3, 3:] = 1.0 / 2 * (self.delta_t ** 3) * np.identity(3)
         D[3:, :3] = 1.0 / 2 * (self.delta_t ** 3) * np.identity(3)
-        D[3:, 3:] = sigma * (self.delta_t ** 3) * np.identity(3)
+        D[3:, 3:] = (self.delta_t ** 2) * np.identity(3)
+
+        D = sigma * D
 
         # Predict
         x1 = np.matmul(F, x)
@@ -74,6 +76,7 @@ class KalmanFilter:
         fig = plt.figure()
         plt.plot(trajectory[:, 0], trajectory[:, 1], c='r')
 
+        # Initial target state
         target_state = np.array([
             self.target.position(0)[0],
             self.target.position(0)[1],
