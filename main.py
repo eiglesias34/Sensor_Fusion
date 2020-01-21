@@ -88,8 +88,13 @@ def exercise_3():
 
 def exercise_4():
 
-    radar_1 = Radar(x=0.0, y=100000.0, z=10000.0, sigma_range=10.0, sigma_azimuth=0.1)
-    radar_2 = Radar(x=100000.0, y=0.0, z=10000.0, sigma_range=10.0, sigma_azimuth=0.1)
+    colors = ['b', 'g', 'm', 'c', 'y']
+    radars = [
+        Radar(x=0.0, y=100000.0, z=10000.0, sigma_range=10.0, sigma_azimuth=0.1),
+        Radar(x=100000.0, y=0.0, z=10000.0, sigma_range=10.0, sigma_azimuth=0.1),
+        # Radar(x=100000.0, y=100000.0, z=10000.0, sigma_range=10.0, sigma_azimuth=0.1),
+        # Radar(x=0.0, y=-100000.0, z=10000.0, sigma_range=10.0, sigma_azimuth=0.1),
+    ]
 
     car = Car(v=20 * 1000 / 3600,
               a_x=10000.0,
@@ -100,14 +105,15 @@ def exercise_4():
 
     trajectory = np.array([car.position(t) for t in time])
 
-    # Measurements transformation
-    trans_measures_1 = np.array([radar_1.cartesian_measure(car, t) for t in time])
-    trans_measures_2 = np.array([radar_2.cartesian_measure(car, t) for t in time])
+    # 4.2 Measurements transformation
+
     fig = plt.figure()
-    plt.plot(trans_measures_1[:, 0], trans_measures_1[:, 1],
-             c='b', label='Radar 1 Measurements')
-    plt.plot(trans_measures_2[:, 0], trans_measures_2[:, 1],
-             c='g', label='Radar 2 Measurements')
+
+    for i, radar in enumerate(radars, start=1):
+        trans_measures = np.array([radar.cartesian_measure(car, t) for t in time])
+        plt.plot(trans_measures[:, 0], trans_measures[:, 1],
+                 c=colors[(i % 5) - 1], label='Radar %s Measurements' % i)
+
     plt.plot(trajectory[:, 0], trajectory[:, 1], c='r')
     plt.title('Trajectory and Radars Measurements')
     plt.legend()
@@ -115,14 +121,17 @@ def exercise_4():
     plt.ylabel('Y-axis (m)')
     plt.show()
 
+    # 4.3 Kalman Filter
+
     # High Variance
     P = np.identity(6)
 
-    kalman = KalmanFilter([radar_1, radar_2], car, P, 2)
+    kalman = KalmanFilter(radars, car, P, delta_t=2)
     kalman.filter()
 
 
 def main():
+
     exercise_3()
     exercise_4()
 
