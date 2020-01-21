@@ -16,6 +16,8 @@ class KalmanFilter:
                             [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                             [0.0, 1.0, 0.0, 0.0, 0.0, 0.0]
                             ])
+        self.track = []
+        self.Ps = []
 
     def prediction_step(self, x, P):
 
@@ -53,21 +55,14 @@ class KalmanFilter:
 
         return x, P
 
-    def filter(self):
-        time_limit = self.target.location[0] / self.target.v
+    def filter(self, time_limit):
 
         t = 0
-
-        radar = self.radars[0]
 
         time = np.linspace(0, self.target.location[0] / self.target.v, 900)
         trajectory = np.array([self.target.position(t) for t in time])
 
         x = np.zeros(6)
-        track = []
-
-        fig = plt.figure()
-        plt.plot(trajectory[:, 0], trajectory[:, 1], c='r', label='Target Trajectory')
 
         # Initial target state
         target_state = np.array([
@@ -105,14 +100,24 @@ class KalmanFilter:
 
             target_state, self.P = self.prediction_step(target_state, self.P)
             target_state, self.P = self.correction_step(zk, Rk, x, self.P)
-            track.append(target_state.copy())
+            self.track.append(target_state.copy())
+            self.Ps.append(self.P.copy())
+
             t += self.delta_t
 
-        track = np.array(track)
-        track[:, 0] = track[:, 0]
-        plt.plot(track[:, 0], track[:, 1], c='g', label='Track')
-        plt.xlabel('X-axis (m)')
-        plt.ylabel('Y-axis (m)')
-        plt.title('Real Trajectory vs Track using Kalman Filter')
-        plt.legend(loc='upper right')
-        plt.show()
+    def discrete_retrodiction(self):
+
+        track = np.array(self.track)
+        Ps = np.array(self.Ps)
+
+        F = np.identity(6)
+        F[:3, 3:] = self.delta_t * np.identity(3)
+
+        for i in range(len(track))[::-1]:
+            if i == 0:
+                break
+            W = np.matmul(np.matmul(Ps[i - 1], F), np.linalg.inv(Ps[i]))
+
+            track[i] = track[i] + np.matmul(W, track[i] - track[i-1])
+
+        return track

@@ -90,8 +90,8 @@ def exercise_4():
 
     colors = ['b', 'g', 'm', 'c', 'y']
     radars = [
-        Radar(x=0.0, y=100000.0, z=10000.0, sigma_range=10.0, sigma_azimuth=0.1),
-        Radar(x=100000.0, y=0.0, z=10000.0, sigma_range=10.0, sigma_azimuth=0.1),
+        Radar(x=0.0, y=100000.0, z=10000.0, sigma_range=10.0, sigma_azimuth=0.5),
+        Radar(x=100000.0, y=0.0, z=10000.0, sigma_range=20.0, sigma_azimuth=0.5),
         # Radar(x=100000.0, y=100000.0, z=10000.0, sigma_range=10.0, sigma_azimuth=0.1),
         # Radar(x=0.0, y=-100000.0, z=10000.0, sigma_range=10.0, sigma_azimuth=0.1),
     ]
@@ -114,12 +114,12 @@ def exercise_4():
         plt.plot(trans_measures[:, 0], trans_measures[:, 1],
                  c=colors[(i % 5) - 1], label='Radar %s Measurements' % i)
 
-    plt.plot(trajectory[:, 0], trajectory[:, 1], c='r')
-    plt.title('Trajectory and Radars Measurements')
-    plt.legend()
-    plt.xlabel('X-axis (m)')
-    plt.ylabel('Y-axis (m)')
-    plt.show()
+    # plt.plot(trajectory[:, 0], trajectory[:, 1], c='r')
+    # plt.title('Trajectory and Radars Measurements')
+    # plt.legend()
+    # plt.xlabel('X-axis (m)')
+    # plt.ylabel('Y-axis (m)')
+    # plt.show()
 
     # 4.3 Kalman Filter
 
@@ -127,12 +127,38 @@ def exercise_4():
     P = np.identity(6)
 
     kalman = KalmanFilter(radars, car, P, delta_t=2)
-    kalman.filter()
+    kalman.filter(car.location[0] / car.v)
+
+    fig = plt.figure()
+    plt.plot(trajectory[:, 0], trajectory[:, 1], c='r', label='Target Trajectory')
+    plt.plot(np.array(kalman.track)[:, 0], np.array(kalman.track)[:, 1],
+             c='g', label='Track')
+    plt.xlabel('X-axis (m)')
+    plt.ylabel('Y-axis (m)')
+    plt.title('Real Trajectory vs Track using Kalman Filter')
+    plt.legend(loc='upper right')
+    plt.xlim(-1000, 12000)
+    plt.ylim(-2000, 2000)
+    plt.show()
+
+    track = kalman.discrete_retrodiction()
+
+    fig = plt.figure()
+    plt.plot(trajectory[:, 0], trajectory[:, 1], c='r', label='Target Trajectory')
+    plt.plot(track[:, 0], track[:, 1],
+             c='g', label='Track')
+    plt.xlabel('X-axis (m)')
+    plt.ylabel('Y-axis (m)')
+    plt.title('Real Trajectory vs Track using Kalman Filter')
+    plt.legend(loc='upper right')
+    plt.xlim(-1000, 12000)
+    plt.ylim(-2000, 2000)
+    plt.show()
 
 
 def main():
 
-    exercise_3()
+    # exercise_3()
     exercise_4()
 
 
