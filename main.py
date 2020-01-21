@@ -16,43 +16,44 @@ def exercise_3():
 
     time = np.linspace(0, car.location[0] / car.v, 50)
 
-    # trajectory
+    # 3.1 trajectory
 
     trajectory = np.array([car.position(t) for t in time])
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
-    ax.plot(trajectory[:, 0], trajectory[:, 1], trajectory[:, 2])
+    ax.plot(trajectory[:, 0], trajectory[:, 1], trajectory[:, 2], label='Car trajectory')
     plt.title('Car Trajectory')
-    ax.set_xlabel('X axis')
-    ax.set_ylabel('Y axis')
-    ax.set_zlabel('Z axis')
+    ax.set_xlabel('X-axis')
+    ax.set_ylabel('Y-axis')
+    ax.set_zlabel('Z-axis')
+    plt.legend()
     plt.show()
 
-    # Speed and Acceleration
-    speeds = np.array([car.velocity(t) for t in time])
+    # 3.2 Velocity and Acceleration
+    velocities = np.array([car.velocity(t) for t in time])
     accs = np.array([car.acceleration(t) for t in time])
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.plot(speeds[:, 0], speeds[:, 1], speeds[:, 2])
+    ax.plot(velocities[:, 0], velocities[:, 1], velocities[:, 2], label='Velocity')
     plt.title('Car Velocity m/s')
-    ax.set_xlabel('X axis')
-    ax.set_ylabel('Y axis')
-    ax.set_zlabel('Z axis')
+    ax.set_xlabel('X-axis (m)')
+    ax.set_ylabel('Y-axis')
+    ax.set_zlabel('Z-axis')
     plt.show()
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.plot(accs[:, 0], accs[:, 1], accs[:, 2])
+    ax.plot(accs[:, 0], accs[:, 1], accs[:, 2], label='Acceleration')
     plt.title('Car Acceleration m/s^{2}')
-    ax.set_xlabel('X axis')
-    ax.set_ylabel('Y axis')
-    ax.set_zlabel('Z axis')
+    ax.set_xlabel('X-axis')
+    ax.set_ylabel('Y-axis')
+    ax.set_zlabel('Z-axis')
     plt.show()
 
-    # Velocity tangential vectors
+    # 3.3 Velocity tangential vectors
     # The 500 factor is just a scale
     # so that the arrows can be seen in the plot
     velocity_tan = np.array([500 * car.velocity(t) / np.linalg.norm(car.velocity(t))
@@ -60,21 +61,23 @@ def exercise_3():
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.plot(trajectory[:, 0], trajectory[:, 1], trajectory[:, 2], color='blue')
+    ax.plot(trajectory[:, 0], trajectory[:, 1], trajectory[:, 2],
+            color='r', label='Car trajectory')
     ax.quiver(trajectory[:, 0], trajectory[:, 1], trajectory[:, 2],
-              velocity_tan[:, 0], velocity_tan[:, 1], velocity_tan[:, 2], color='orange')
+              velocity_tan[:, 0], velocity_tan[:, 1], velocity_tan[:, 2],
+              color='b', label='Tangential Velocity (SCALED * 500)')
     plt.title('Car Tangential Vectors')
-    ax.set_xlabel('X axis')
-    ax.set_ylabel('Y axis')
-    ax.set_zlabel('Z axis')
+    ax.set_xlabel('X-axis')
+    ax.set_ylabel('Y-axis')
+    ax.set_zlabel('Z-axis')
     plt.show()
 
-    # Modules part
+    # 3.4 Modules part
 
-    mod_vel = np.array([np.linalg.norm(sp) for sp in speeds])
+    mod_vel = np.array([np.linalg.norm(sp) for sp in velocities])
     mod_accs = np.array([np.linalg.norm(acc) for acc in accs])
 
-    dot_products = [np.dot(accs[i], speeds[i]) for i in range(len(accs))]
+    dot_products = [np.dot(accs[i], velocities[i]) for i in range(len(accs))]
 
     fig = plt.figure()
     plt.plot(time, mod_vel,
@@ -101,21 +104,26 @@ def exercise_4():
     trans_measures_1 = np.array([radar_1.cartesian_measure(car, t) for t in time])
     trans_measures_2 = np.array([radar_2.cartesian_measure(car, t) for t in time])
     fig = plt.figure()
-    plt.plot(trans_measures_1[:, 0], trans_measures_1[:, 1], c='b')
-    plt.plot(trans_measures_2[:, 0], trans_measures_2[:, 1], c='g')
+    plt.plot(trans_measures_1[:, 0], trans_measures_1[:, 1],
+             c='b', label='Radar 1 Measurements')
+    plt.plot(trans_measures_2[:, 0], trans_measures_2[:, 1],
+             c='g', label='Radar 2 Measurements')
     plt.plot(trajectory[:, 0], trajectory[:, 1], c='r')
+    plt.title('Trajectory and Radars Measurements')
+    plt.legend()
+    plt.xlabel('X-axis (m)')
+    plt.ylabel('Y-axis (m)')
     plt.show()
 
     # High Variance
     P = np.identity(6)
 
     kalman = KalmanFilter([radar_1, radar_2], car, P, 2)
-
     kalman.filter()
 
 
 def main():
-    # exercise_3()
+    exercise_3()
     exercise_4()
 
 

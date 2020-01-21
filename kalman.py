@@ -43,13 +43,6 @@ class KalmanFilter:
 
     def correction_step(self, z, R, x, P):
 
-        # Construct R
-        # R = np.array([
-        #     [self.radars[0].sigma_range, .0, .0, .0],
-        #     [.0, self.radars[0].sigma_azimuth, .0, .0],
-        #     [.0, .0, self.radars[1].sigma_range, .0],
-        #     [.0, .0, .0, self.radars[1].sigma_azimuth]
-        # ])
         np.matmul(self.H, x)
         v = z - np.matmul(self.H, x)
         S = np.matmul(np.matmul(self.H, P), self.H.T) + R
@@ -74,7 +67,7 @@ class KalmanFilter:
         track = []
 
         fig = plt.figure()
-        plt.plot(trajectory[:, 0], trajectory[:, 1], c='r')
+        plt.plot(trajectory[:, 0], trajectory[:, 1], c='r', label='Target Trajectory')
 
         # Initial target state
         target_state = np.array([
@@ -117,5 +110,9 @@ class KalmanFilter:
 
         track = np.array(track)
         track[:, 0] = track[:, 0]
-        plt.scatter(track[:, 0], track[:, 1], c='g')
+        plt.plot(track[:, 0], track[:, 1], c='g', label='Track')
+        plt.xlabel('X-axis (m)')
+        plt.ylabel('Y-axis (m)')
+        plt.title('Real Trajectory vs Track using Kalman Filter')
+        plt.legend(loc='upper right')
         plt.show()
