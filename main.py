@@ -114,24 +114,22 @@ def exercise_4():
         plt.plot(trans_measures[:, 0], trans_measures[:, 1],
                  c=colors[(i % 5) - 1], label='Radar %s Measurements' % i)
 
-    # plt.plot(trajectory[:, 0], trajectory[:, 1], c='r')
-    # plt.title('Trajectory and Radars Measurements')
-    # plt.legend()
-    # plt.xlabel('X-axis (m)')
-    # plt.ylabel('Y-axis (m)')
-    # plt.show()
+    plt.plot(trajectory[:, 0], trajectory[:, 1], c='r')
+    plt.title('Trajectory and Radars Measurements')
+    plt.legend()
+    plt.xlabel('X-axis (m)')
+    plt.ylabel('Y-axis (m)')
+    plt.show()
 
     # 4.3 Kalman Filter
 
-    # High Variance
-    P = np.identity(6)
-
-    kalman = KalmanFilter(radars, car, P, delta_t=2)
-    kalman.filter(car.location[0] / car.v)
+    time_limit = car.location[0] / car.v
+    kalman = KalmanFilter(radars, car, delta_t=2)
+    kalman.filter(time_limit)
 
     fig = plt.figure()
     plt.plot(trajectory[:, 0], trajectory[:, 1], c='r', label='Target Trajectory')
-    plt.plot(np.array(kalman.track)[:, 0], np.array(kalman.track)[:, 1],
+    plt.plot(kalman.track[:, 0], kalman.track[:, 1],
              c='g', label='Track')
     plt.xlabel('X-axis (m)')
     plt.ylabel('Y-axis (m)')
@@ -141,18 +139,18 @@ def exercise_4():
     plt.ylim(-2000, 2000)
     plt.show()
 
-    track = kalman.discrete_retrodiction()
-
+    kalman.d_retro(time_limit)
+    #
     fig = plt.figure()
     plt.plot(trajectory[:, 0], trajectory[:, 1], c='r', label='Target Trajectory')
-    plt.plot(track[:, 0], track[:, 1],
+    plt.plot(kalman.track[:, 0], kalman.track[:, 1],
              c='g', label='Track')
     plt.xlabel('X-axis (m)')
     plt.ylabel('Y-axis (m)')
     plt.title('Real Trajectory vs Track using Kalman Filter')
     plt.legend(loc='upper right')
-    plt.xlim(-1000, 12000)
-    plt.ylim(-2000, 2000)
+    # plt.xlim(-1000, 12000)
+    # plt.ylim(-2000, 2000)
     plt.show()
 
 
