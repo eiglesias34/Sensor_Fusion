@@ -37,25 +37,23 @@ class Radar:
             z_azimuth
         ]) + self.noise()
 
-    def cartesian_measure(self, target, t):
+    @staticmethod
+    def cartesian_measurement(z):
 
-        z = self.measure(target, t)
-        z = z[0] * np.array([np.cos(z[1]), np.sin(z[1])]) \
-            + self.location[:2]
+        return z[0] * np.array([np.cos(z[1]), np.sin(z[1])])
 
-        return z
+    @staticmethod
+    def cartesian_error_covariance(z, sigma_range, sigma_azimuth):
 
-    def cartesian_error_covariance(self, target, t):
-
-        r, phi = self.measure(target, t)
+        r, phi = z[0], z[1]
         D = np.array([
             [np.cos(phi), - np.sin(phi)],
             [np.sin(phi), np.cos(phi)]
         ])
 
         core_matrix = np.array([
-            [self.sigma_range ** 2, 0],
-            [0, (r * self.sigma_azimuth) ** 2]
+            [sigma_range ** 2, 0],
+            [0, (r * sigma_azimuth) ** 2]
         ])
 
         trt = np.matmul(np.matmul(D, core_matrix), D.T)

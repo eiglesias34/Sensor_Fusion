@@ -17,6 +17,8 @@ class KalmanFilter:
                             ])
         self.track = np.array([])
         self.Ps = np.array([])
+        self.no_retro_track = np.array([])
+        self.no_retro_Ps = np.array([])
 
     def prediction_step(self, x, P):
 
@@ -56,11 +58,7 @@ class KalmanFilter:
 
     def filter(self, time_limit):
 
-        t = 0
-
         P = np.identity(6)
-        time = np.linspace(0, self.target.location[0] / self.target.v, 900)
-
         x = np.zeros(6)
 
         # Initial target state
@@ -73,32 +71,15 @@ class KalmanFilter:
             self.target.velocity(0)[2]
         ])
 
-        while t <= time_limit:
+        t = 0
 
-            # individual measures in array
-            z = np.array([
-                sensor.cartesian_measure(self.target, t)
-                for sensor in self.radars
-            ])
+        while t < time_limit:
 
-            # inverted individual covs (R_k^{-1})
-            Rs = [np.linalg.inv(sensor.cartesian_error_covariance(self.target, t))
-                  for sensor in self.radars]
-
-            # effective cov
-            Rk = np.linalg.inv(np.sum(Rs, axis=0))
-
-            # values for the sum to obtain z_k
-            zk_sum_values = np.array([
-                np.matmul(Rs[i], z[i])
-                for i in range(len(self.radars))
-            ])
-
-            # effective measurement
-            zk = np.matmul(Rk, np.sum(zk_sum_values, axis=0))
+            # obtain effective measurement and cov
+            zk, Rk = self.get_effective_measurement(t)
 
             target_state, P = self.prediction_step(target_state, P)
-            target_state, P = self.correction_step(zk, Rk, x, P)
+            target_state, P = self.correction_step(zk, Rk, target_state, P)
             self.track = np.array([target_state]) if t == 0 else np.vstack((self.track, target_state))
             self.Ps = np.array([P.copy()]) if t == 0 else np.vstack([self.Ps, [P]])
 
@@ -106,13 +87,9 @@ class KalmanFilter:
 
     def d_retro(self, time_limit):
 
-        t = 0
-
         P = np.identity(6)
         F = np.identity(6)
         F[:3, 3:] = self.delta_t * np.identity(3)
-
-        x = np.zeros(6)
 
         # Initial target state
         target_state = np.array([
@@ -124,57 +101,77 @@ class KalmanFilter:
             self.target.velocity(0)[2]
         ])
 
-        while t <= time_limit:
-            # individual measures in array
-            z = np.array([
-                sensor.cartesian_measure(self.target, t)
-                for sensor in self.radars
-            ])
+        t = 0
 
-            # inverted individual covs (R_k^{-1})
-            Rs = [np.linalg.inv(sensor.cartesian_error_covariance(self.target, t))
-                  for sensor in self.radars]
+        while t < time_limit:
 
-            # effective cov
-            Rk = np.linalg.inv(np.sum(Rs, axis=0))
-
-            # values for the sum to obtain z_k
-            zk_sum_values = np.array([
-                np.matmul(Rs[i], z[i])
-                for i in range(len(self.radars))
-            ])
-
-            # effective measurement
-            zk = np.matmul(Rk, np.sum(zk_sum_values, axis=0))
+            # obtain effective measurement and cov
+            zk, Rk = self.get_effective_measurement(t)
 
             target_state, P = self.prediction_step(target_state, P)
-            target_state, P = self.correction_step(zk, Rk, x, P)
+            target_state, P = self.correction_step(zk, Rk, target_state, P)
 
-            self.track = np.array([target_state]) if t == 0 else np.vstack((self.track, target_state))
-            self.Ps = np.array([P.copy()]) if t == 0 else np.vstack([self.Ps, [P]])
+            self.track = np.array([target_state.copy()]) if t == 0 else np.vstack((self.track, target_state.copy()))
+            self.Ps = np.array([P.copy()]) if t == 0 else np.vstack([self.Ps, [P.copy()]])
+
+            self.no_retro_track = np.array([target_state.copy()]) if t == 0 \
+                else np.vstack((self.no_retro_track, target_state.copy()))
+            self.no_retro_Ps = np.array([P.copy()]) if t == 0 \
+                else np.vstack([self.no_retro_Ps, [P.copy()]])
 
             # retrodiction:
-            # for l in range(t - self.delta_t, 0, -self.delta_t):
-            for l in range(len(self.track) - 1, 0, -1):
-                W = np.matmul(np.matmul(self.Ps[l - 1], F), np.linalg.inv(self.Ps[l]))
-                self.track[l - 1] = self.track[l - 1] \
-                                    + np.matmul(W, self.track[l - 1] - self.track[l])
+            track_l = self.track.copy()
+            P_l = self.Ps.copy()
+
+            for l in range(len(self.track) - 2, -1, -1):
+                W = np.matmul(np.matmul(P_l[l], F.T), np.linalg.inv(P_l[l + 1]))
+                self.track[l] = track_l[l] \
+                                + np.matmul(W, self.track[l + 1] - track_l[l + 1])
+
+                self.Ps[l] = P_l[l] \
+                             + np.matmul(np.matmul(W, (self.Ps[l + 1] - P_l[l + 1])), W.T)
+
             t += self.delta_t
 
-    #   Noisy approach (?)
-    # def discrete_retrodiction(self):
-    #
-    #     track = np.array(self.track)
-    #     Ps = np.array(self.Ps)
-    #
-    #     F = np.identity(6)
-    #     F[:3, 3:] = self.delta_t * np.identity(3)
-    #
-    #     for i in range(len(track))[::-1]:
-    #         if i == 0:
-    #             break
-    #         W = np.matmul(np.matmul(Ps[i - 1], F), np.linalg.inv(Ps[i]))
-    #
-    #         track[i] = track[i] + np.matmul(W, track[i] - track[i-1])
-    #
-    #     return track
+    def get_effective_measurement(self, t):
+
+        # individual measures in array
+        zs = np.array([
+            sensor.measure(self.target, t)
+            for sensor in self.radars
+        ])
+
+        # convert to cartesian
+        cart_zs = np.array([
+            Radar.cartesian_measurement(measurement)
+            for measurement in zs
+        ])
+
+        # add the radar's position
+        cart_zs = np.array([
+           cart_zs[i] + self.radars[i].location[:2]
+           for i in range(len(self.radars))
+        ])
+
+        # inverted individual covs (R_k^{-1})
+        Rs = [
+            np.linalg.inv(
+                Radar.cartesian_error_covariance(
+                    zs[i],
+                    self.radars[i].sigma_range,
+                    self.radars[i].sigma_azimuth))
+            for i in range(len(self.radars))]
+
+        # effective cov
+        Rk = np.linalg.inv(np.sum(Rs, axis=0))
+
+        # values for the sum to obtain z_k
+        zk_sum_values = np.array([
+            np.matmul(Rs[i], cart_zs[i])
+            for i in range(len(self.radars))
+        ])
+
+        # effective measurement
+        zk = np.matmul(Rk, np.sum(zk_sum_values, axis=0))
+
+        return zk, Rk

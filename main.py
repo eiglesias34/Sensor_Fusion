@@ -90,9 +90,9 @@ def exercise_4():
 
     colors = ['b', 'g', 'm', 'c', 'y']
     radars = [
-        Radar(x=0.0, y=100000.0, z=10000.0, sigma_range=10.0, sigma_azimuth=0.5),
-        Radar(x=100000.0, y=0.0, z=10000.0, sigma_range=20.0, sigma_azimuth=0.5),
-        # Radar(x=100000.0, y=100000.0, z=10000.0, sigma_range=10.0, sigma_azimuth=0.1),
+        Radar(x=0.0, y=100000.0, z=10000.0, sigma_range=110.0, sigma_azimuth=0.7),
+        Radar(x=100000.0, y=0.0, z=10000.0, sigma_range=110.0, sigma_azimuth=0.7),
+        # Radar(x=100000.0, y=100000.0, z=10000.0, sigma_range=100.0, sigma_azimuth=0.7),
         # Radar(x=0.0, y=-100000.0, z=10000.0, sigma_range=10.0, sigma_azimuth=0.1),
     ]
 
@@ -110,11 +110,14 @@ def exercise_4():
     fig = plt.figure()
 
     for i, radar in enumerate(radars, start=1):
-        trans_measures = np.array([radar.cartesian_measure(car, t) for t in time])
+        measurements = [radar.measure(car, t) for t in time]
+        trans_measures = np.array([Radar.cartesian_measurement(m)
+                                   + radar.location[:2]
+                                   for m in measurements])
         plt.plot(trans_measures[:, 0], trans_measures[:, 1],
                  c=colors[(i % 5) - 1], label='Radar %s Measurements' % i)
 
-    plt.plot(trajectory[:, 0], trajectory[:, 1], c='r')
+    plt.plot(trajectory[:, 0], trajectory[:, 1], c='r', label='Real trajectory')
     plt.title('Trajectory and Radars Measurements')
     plt.legend()
     plt.xlabel('X-axis (m)')
@@ -140,19 +143,35 @@ def exercise_4():
     plt.show()
 
     kalman.d_retro(time_limit)
+    # kalman.discrete_retrodiction()
     #
     fig = plt.figure()
     plt.plot(trajectory[:, 0], trajectory[:, 1], c='r', label='Target Trajectory')
     plt.plot(kalman.track[:, 0], kalman.track[:, 1],
-             c='g', label='Track')
+             c='g', label='Track with retrodiction')
+    plt.plot(kalman.no_retro_track[:, 0], kalman.no_retro_track[:, 1],
+             c='b', label='Track')
     plt.xlabel('X-axis (m)')
     plt.ylabel('Y-axis (m)')
     plt.title('Real Trajectory vs Track using Kalman Filter')
     plt.legend(loc='upper right')
-    # plt.xlim(-1000, 12000)
-    # plt.ylim(-2000, 2000)
+    plt.xlim(-1000, 12000)
+    plt.ylim(-2000, 2000)
     plt.show()
 
+    # error calculation:
+    err = np.sum(np.sqrt(np.sum(
+        (trajectory[:, 0] - kalman.no_retro_track[:, 0]) ** 2 +
+        (trajectory[:, 1] - kalman.no_retro_track[:, 1]) ** 2
+    )))
+    print(err)
+
+    # error calculation:
+    err = np.sum(np.sqrt(np.sum(
+        (trajectory[:, 0] - kalman.track[:, 0]) ** 2 +
+        (trajectory[:, 1] - kalman.track[:, 1]) ** 2
+    )))
+    print(err)
 
 def main():
 
