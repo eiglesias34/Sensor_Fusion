@@ -114,15 +114,15 @@ def exercise_4():
         trans_measures = np.array([Radar.cartesian_measurement(m)
                                    + radar.location[:2]
                                    for m in measurements])
-        plt.plot(trans_measures[:, 0], trans_measures[:, 1],
-                 c=colors[(i % 5) - 1], label='Radar %s Measurements' % i)
-
-    plt.plot(trajectory[:, 0], trajectory[:, 1], c='r', label='Real trajectory')
-    plt.title('Trajectory and Radars Measurements')
-    plt.legend()
-    plt.xlabel('X-axis (m)')
-    plt.ylabel('Y-axis (m)')
-    plt.show()
+    #     plt.plot(trans_measures[:, 0], trans_measures[:, 1],
+    #              c=colors[(i % 5) - 1], label='Radar %s Measurements' % i)
+    #
+    # plt.plot(trajectory[:, 0], trajectory[:, 1], c='r', label='Real trajectory')
+    # plt.title('Trajectory and Radars Measurements')
+    # plt.legend()
+    # plt.xlabel('X-axis (m)')
+    # plt.ylabel('Y-axis (m)')
+    # plt.show()
 
     # 4.3 Kalman Filter
 
@@ -130,30 +130,32 @@ def exercise_4():
     kalman = KalmanFilter(radars, car, delta_t=2)
     kalman.filter(time_limit)
 
-    fig = plt.figure()
-    plt.plot(trajectory[:, 0], trajectory[:, 1], c='r', label='Target Trajectory')
-    plt.plot(kalman.track[:, 0], kalman.track[:, 1],
-             c='g', label='Track')
-    plt.xlabel('X-axis (m)')
-    plt.ylabel('Y-axis (m)')
-    plt.title('Real Trajectory vs Track using Kalman Filter')
-    plt.legend(loc='upper right')
-    plt.xlim(-1000, 12000)
-    plt.ylim(-2000, 2000)
-    plt.show()
+    # fig = plt.figure()
+    # plt.plot(trajectory[:, 0], trajectory[:, 1], c='r', label='Target Trajectory')
+    # plt.plot(kalman.track[:, 0], kalman.track[:, 1],
+    #          c='g', label='Track')
+    # plt.xlabel('X-axis (m)')
+    # plt.ylabel('Y-axis (m)')
+    # plt.title('Real Trajectory vs Track using Kalman Filter')
+    # plt.legend(loc='upper right')
+    # plt.xlim(-1000, 12000)
+    # plt.ylim(-2000, 2000)
+    # plt.show()
 
     kalman.d_retro(time_limit)
     # kalman.discrete_retrodiction()
     #
     fig = plt.figure()
     plt.plot(trajectory[:, 0], trajectory[:, 1], c='r', label='Target Trajectory')
+    plt.plot(kalman.no_filtered_track[:, 0], kalman.no_filtered_track[:, 1],
+             c='y', label='Predicted Track')
     plt.plot(kalman.track[:, 0], kalman.track[:, 1],
-             c='g', label='Track with retrodiction')
-    plt.plot(kalman.no_retro_track[:, 0], kalman.no_retro_track[:, 1],
-             c='b', label='Track')
+             c='g', label='Filtered Track')
+    plt.plot(kalman.retro_track[:, 0], kalman.retro_track[:, 1],
+             c='b', label='Track with retrodiction')
     plt.xlabel('X-axis (m)')
     plt.ylabel('Y-axis (m)')
-    plt.title('Real Trajectory vs Track using Kalman Filter')
+    plt.title('Real Trajectory vs Track using Kalman Filter vs Track using retrodiction')
     plt.legend(loc='upper right')
     plt.xlim(-1000, 12000)
     plt.ylim(-2000, 2000)
@@ -161,8 +163,8 @@ def exercise_4():
 
     # error calculation:
     err = np.sum(np.sqrt(np.sum(
-        (trajectory[:, 0] - kalman.no_retro_track[:, 0]) ** 2 +
-        (trajectory[:, 1] - kalman.no_retro_track[:, 1]) ** 2
+        (trajectory[:, 0] - kalman.retro_track[:, 0]) ** 2 +
+        (trajectory[:, 1] - kalman.retro_track[:, 1]) ** 2
     )))
     print(err)
 

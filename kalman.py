@@ -17,8 +17,10 @@ class KalmanFilter:
                             ])
         self.track = np.array([])
         self.Ps = np.array([])
-        self.no_retro_track = np.array([])
-        self.no_retro_Ps = np.array([])
+        self.no_filtered_track = np.array([])
+        self.no_filtered_Ps = np.array([])
+        self.retro_track = np.zeros((900, 6))
+        self.retro_Ps = np.zeros((900, 6, 6))
 
     def prediction_step(self, x, P):
 
@@ -109,27 +111,32 @@ class KalmanFilter:
             zk, Rk = self.get_effective_measurement(t)
 
             target_state, P = self.prediction_step(target_state, P)
+
+            # Save no filtered track and Ps
+            self.no_filtered_track = np.array([target_state.copy()]) if t == 0 \
+                else np.vstack((self.no_filtered_track, target_state.copy()))
+            self.no_filtered_Ps = np.array([P.copy()]) if t == 0 \
+                else np.vstack([self.no_filtered_Ps, [P.copy()]])
+
             target_state, P = self.correction_step(zk, Rk, target_state, P)
 
+            # Save filtered track and Ps
             self.track = np.array([target_state.copy()]) if t == 0 else np.vstack((self.track, target_state.copy()))
             self.Ps = np.array([P.copy()]) if t == 0 else np.vstack([self.Ps, [P.copy()]])
 
-            self.no_retro_track = np.array([target_state.copy()]) if t == 0 \
-                else np.vstack((self.no_retro_track, target_state.copy()))
-            self.no_retro_Ps = np.array([P.copy()]) if t == 0 \
-                else np.vstack([self.no_retro_Ps, [P.copy()]])
 
             # retrodiction:
-            track_l = self.track.copy()
-            P_l = self.Ps.copy()
+            i = int(t / 2)
+            self.retro_track[i] = self.track[i].copy()
+            self.retro_Ps[i] = self.Ps[i].copy()
 
             for l in range(len(self.track) - 2, -1, -1):
-                W = np.matmul(np.matmul(P_l[l], F.T), np.linalg.inv(P_l[l + 1]))
-                self.track[l] = track_l[l] \
-                                + np.matmul(W, self.track[l + 1] - track_l[l + 1])
+                W = np.matmul(np.matmul(self.Ps[l], F.T), np.linalg.inv(self.no_filtered_Ps[l + 1]))
+                self.retro_track[l] = self.track[l] \
+                                      + np.matmul(W, self.retro_track[l + 1] - self.no_filtered_track[l + 1])
 
-                self.Ps[l] = P_l[l] \
-                             + np.matmul(np.matmul(W, (self.Ps[l + 1] - P_l[l + 1])), W.T)
+                self.retro_Ps[l] = self.Ps[l] \
+                                   + np.matmul(np.matmul(W, self.retro_Ps[l + 1] - self.no_filtered_Ps[l + 1]), W.T)
 
             t += self.delta_t
 
