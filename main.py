@@ -90,9 +90,9 @@ def exercise_4():
 
     colors = ['b', 'g', 'm', 'c', 'y']
     radars = [
-        Radar(x=0.0, y=100000.0, z=10000.0, sigma_range=110.0, sigma_azimuth=0.7),
-        Radar(x=100000.0, y=0.0, z=10000.0, sigma_range=110.0, sigma_azimuth=0.7),
-        # Radar(x=100000.0, y=100000.0, z=10000.0, sigma_range=100.0, sigma_azimuth=0.7),
+        Radar(x=0.0, y=100000.0, z=10000.0, sigma_range=10.0, sigma_azimuth=0.1),
+        Radar(x=100000.0, y=0.0, z=10000.0, sigma_range=10.0, sigma_azimuth=0.1),
+        # Radar(x=100000.0, y=100000.0, z=10000.0, sigma_range=10.0, sigma_azimuth=0.1),
         # Radar(x=0.0, y=-100000.0, z=10000.0, sigma_range=10.0, sigma_azimuth=0.1),
     ]
 

@@ -38,7 +38,7 @@ class KalmanFilter:
         D[3:, :3] = 1.0 / 2 * (self.delta_t ** 3) * np.identity(3)
         D[3:, 3:] = (self.delta_t ** 2) * np.identity(3)
 
-        D = sigma * D
+        D = (sigma ** 2) * D
 
         # Predict
         x1 = np.matmul(F, x)
@@ -110,20 +110,19 @@ class KalmanFilter:
             # obtain effective measurement and cov
             zk, Rk = self.get_effective_measurement(t)
 
-            target_state, P = self.prediction_step(target_state, P)
+            target_state_nf, P_nf = self.prediction_step(target_state, P)
 
             # Save no filtered track and Ps
-            self.no_filtered_track = np.array([target_state.copy()]) if t == 0 \
-                else np.vstack((self.no_filtered_track, target_state.copy()))
-            self.no_filtered_Ps = np.array([P.copy()]) if t == 0 \
-                else np.vstack([self.no_filtered_Ps, [P.copy()]])
+            self.no_filtered_track = np.array([target_state_nf.copy()]) if t == 0 \
+                else np.vstack((self.no_filtered_track, target_state_nf.copy()))
+            self.no_filtered_Ps = np.array([P_nf.copy()]) if t == 0 \
+                else np.vstack([self.no_filtered_Ps, [P_nf.copy()]])
 
-            target_state, P = self.correction_step(zk, Rk, target_state, P)
+            target_state, P = self.correction_step(zk, Rk, target_state_nf, P_nf)
 
             # Save filtered track and Ps
             self.track = np.array([target_state.copy()]) if t == 0 else np.vstack((self.track, target_state.copy()))
             self.Ps = np.array([P.copy()]) if t == 0 else np.vstack([self.Ps, [P.copy()]])
-
 
             # retrodiction:
             i = int(t / 2)
