@@ -2,17 +2,14 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
-from car import Car
 from radar import Radar
 from kalman import KalmanFilter
+from parameters import target, radars
 
 
 def exercise_3():
 
-    car = Car(v=20 * 1000 / 3600,
-              a_x=10000.0,
-              a_y=1000.0,
-              a_z=1000.0)
+    car = target
 
     time = np.linspace(0, car.location[0] / car.v, 50)
 
@@ -22,7 +19,6 @@ def exercise_3():
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-
     ax.plot(trajectory[:, 0], trajectory[:, 1], trajectory[:, 2], label='Car trajectory')
     plt.title('Car Trajectory')
     ax.set_xlabel('X-axis')
@@ -54,22 +50,25 @@ def exercise_3():
     plt.show()
 
     # 3.3 Velocity tangential vectors
+    velocity_tan = np.array([car.velocity(t) / np.linalg.norm(car.velocity(t))
+                            for t in time])
+
     # The 500 factor is just a scale
     # so that the arrows can be seen in the plot
-    velocity_tan = np.array([500 * car.velocity(t) / np.linalg.norm(car.velocity(t))
-                            for t in time])
+    scaled_velocity_tan = 500 * velocity_tan
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.plot(trajectory[:, 0], trajectory[:, 1], trajectory[:, 2],
             color='r', label='Car trajectory')
     ax.quiver(trajectory[:, 0], trajectory[:, 1], trajectory[:, 2],
-              velocity_tan[:, 0], velocity_tan[:, 1], velocity_tan[:, 2],
+              scaled_velocity_tan[:, 0], scaled_velocity_tan[:, 1], scaled_velocity_tan[:, 2],
               color='b', label='Tangential Velocity (SCALED * 500)')
     plt.title('Car Tangential Vectors')
     ax.set_xlabel('X-axis')
     ax.set_ylabel('Y-axis')
     ax.set_zlabel('Z-axis')
+    plt.legend()
     plt.show()
 
     # 3.4 Modules part
@@ -77,29 +76,36 @@ def exercise_3():
     mod_vel = np.array([np.linalg.norm(sp) for sp in velocities])
     mod_accs = np.array([np.linalg.norm(acc) for acc in accs])
 
-    dot_products = [np.dot(accs[i], velocities[i]) for i in range(len(accs))]
+    acc_tans = [np.matmul(accs[i], velocity_tan[i]) for i in range(len(accs))]
+
 
     fig = plt.figure()
-    plt.plot(time, mod_vel,
-             time, mod_accs,
-             time, dot_products)
+    plt.plot(time, mod_vel)
+    plt.title('Evolution of the Velocity Vector Norm in Time')
+    plt.xlabel('Velocity Vector Norm')
+    plt.ylabel('Time (seconds)')
+    plt.legend()
+
     plt.show()
 
+    fig = plt.figure()
+    plt.plot(time, mod_accs)
+    plt.title('Evolution of the Acceleration Vector Norm in Time')
+    plt.xlabel('Acceleration Vector Norm')
+    plt.ylabel('Time (seconds)')
+    plt.show()
+
+    fig = plt.figure()
+    plt.plot(time, acc_tans)
+    plt.title('Evolution of Acceleration Vector x Tangential Vectors in Time')
+    plt.xlabel('r\'\'(t)t(t)')
+    plt.ylabel('Time (seconds)')
+    plt.show()
 
 def exercise_4():
 
     colors = ['b', 'g', 'm', 'c', 'y']
-    radars = [
-        Radar(x=0.0, y=100000.0, z=10000.0, sigma_range=10.0, sigma_azimuth=0.1),
-        Radar(x=100000.0, y=0.0, z=10000.0, sigma_range=10.0, sigma_azimuth=0.1),
-        # Radar(x=100000.0, y=100000.0, z=10000.0, sigma_range=10.0, sigma_azimuth=0.1),
-        # Radar(x=0.0, y=-100000.0, z=10000.0, sigma_range=10.0, sigma_azimuth=0.1),
-    ]
-
-    car = Car(v=20 * 1000 / 3600,
-              a_x=10000.0,
-              a_y=1000.0,
-              a_z=1000.0)
+    car = target
 
     time = np.linspace(0, car.location[0] / car.v, 900)
 
@@ -114,15 +120,15 @@ def exercise_4():
         trans_measures = np.array([Radar.cartesian_measurement(m)
                                    + radar.location[:2]
                                    for m in measurements])
-    #     plt.plot(trans_measures[:, 0], trans_measures[:, 1],
-    #              c=colors[(i % 5) - 1], label='Radar %s Measurements' % i)
-    #
-    # plt.plot(trajectory[:, 0], trajectory[:, 1], c='r', label='Real trajectory')
-    # plt.title('Trajectory and Radars Measurements')
-    # plt.legend()
-    # plt.xlabel('X-axis (m)')
-    # plt.ylabel('Y-axis (m)')
-    # plt.show()
+        plt.plot(trans_measures[:, 0], trans_measures[:, 1],
+                 c=colors[(i % 5) - 1], label='Radar %s Measurements' % i)
+
+    plt.plot(trajectory[:, 0], trajectory[:, 1], c='r', label='Real trajectory')
+    plt.title('Trajectory and Radars Measurements')
+    plt.legend()
+    plt.xlabel('X-axis (m)')
+    plt.ylabel('Y-axis (m)')
+    plt.show()
 
     # 4.3 Kalman Filter
 
@@ -130,20 +136,19 @@ def exercise_4():
     kalman = KalmanFilter(radars, car, delta_t=2)
     kalman.filter(time_limit)
 
-    # fig = plt.figure()
-    # plt.plot(trajectory[:, 0], trajectory[:, 1], c='r', label='Target Trajectory')
-    # plt.plot(kalman.track[:, 0], kalman.track[:, 1],
-    #          c='g', label='Track')
-    # plt.xlabel('X-axis (m)')
-    # plt.ylabel('Y-axis (m)')
-    # plt.title('Real Trajectory vs Track using Kalman Filter')
-    # plt.legend(loc='upper right')
-    # plt.xlim(-1000, 12000)
-    # plt.ylim(-2000, 2000)
+    fig = plt.figure()
+    plt.plot(trajectory[:, 0], trajectory[:, 1], c='r', label='Target Trajectory')
+    plt.plot(kalman.track[:, 0], kalman.track[:, 1],
+             c='g', label='Track')
+    plt.xlabel('X-axis (m)')
+    plt.ylabel('Y-axis (m)')
+    plt.title('Real Trajectory vs Track using Kalman Filter')
+    plt.legend(loc='upper right')
+    plt.xlim(-1000, 12000)
+    plt.ylim(-2000, 2000)
     # plt.show()
 
     kalman.d_retro(time_limit)
-    # kalman.discrete_retrodiction()
     #
     fig = plt.figure()
     plt.plot(trajectory[:, 0], trajectory[:, 1], c='r', label='Target Trajectory')
@@ -166,6 +171,7 @@ def exercise_4():
         (trajectory[:, 0] - kalman.retro_track[:, 0]) ** 2 +
         (trajectory[:, 1] - kalman.retro_track[:, 1]) ** 2
     )))
+    print('Error of the track when applying retrodiction: ')
     print(err)
 
     # error calculation:
@@ -173,11 +179,13 @@ def exercise_4():
         (trajectory[:, 0] - kalman.track[:, 0]) ** 2 +
         (trajectory[:, 1] - kalman.track[:, 1]) ** 2
     )))
+    print('Error of the track without retrodiction: ')
     print(err)
+
 
 def main():
 
-    # exercise_3()
+    exercise_3()
     exercise_4()
 
 
